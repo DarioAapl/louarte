@@ -1,69 +1,214 @@
-
 <!DOCTYPE html>
-<html>
-<head><title>Admin</title></head>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Admin Panel</title>
+  <link rel="icon" type="image/png" href="lucianino-memoji.png" />
+  <link rel="stylesheet" href="admin.css">
+</head>
 <body>
-  <h2>Login</h2>
-  <input id="username" placeholder="Username">
-  <input id="password" type="password" placeholder="Password">
-  <button onclick="login()">Login</button>
 
-  <div id="dashboard" style="display:none;">
-    <h2>Upload Image</h2>
-    <input type="file" id="imageInput">
-    <button onclick="uploadImage()">Upload</button>
+<div class="container">
+  <div class="text-content" style="max-width:1000px;width:100%;">
+    <div class="fade-in">Admin Panel</div>
+    <div class="under-construction">Add / Edit / Delete / Reorder</div>
 
-    <h2>Add Music</h2>
-    <input id="title" placeholder="Title">
-    <input id="artist" placeholder="Artist">
-    <input id="link" placeholder="SoundCloud Link">
-    <button onclick="addMusic()">Add</button>
+    <br>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button class="tabBtn" data-tab="artworks">Arte</button>
+      <button class="tabBtn" data-tab="photos">Photos</button>
+      <button class="tabBtn" data-tab="music">Music</button>
+      <button class="tabBtn" data-tab="links">Links</button>
+      <button id="logoutBtn">Logout</button>
+    </div>
+
+    <br><hr style="opacity:.2"><br>
+
+    <div id="formArea"></div>
+
+    <br><hr style="opacity:.2"><br>
+
+    <div id="listArea"></div>
+
   </div>
+</div>
 
-  <script>
-    function login() {
-      fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: document.getElementById('username').value,
-          password: document.getElementById('password').value
-        })
-      }).then(res => {
-        if (res.ok) {
-          document.getElementById('dashboard').style.display = 'block';
-        } else {
-          alert('Login failed');
-        }
-      });
-    }
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  query,
+  orderBy,
+  doc,
+  deleteDoc,
+  updateDoc
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
 
-    function uploadImage() {
-      const file = document.getElementById('imageInput').files[0];
-      const formData = new FormData();
-      formData.append('image', file);
-      fetch('/api/upload-image', {
-        method: 'POST',
-        body: formData
-      }).then(res => res.json()).then(data => {
-        alert('Image uploaded: ' + data.imageUrl);
-      });
-    }
+const firebaseConfig = {
+  apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
+  authDomain: "louarte-e66bd.firebaseapp.com",
+  projectId: "louarte-e66bd",
+  storageBucket: "louarte-e66bd.firebasestorage.app",
+  messagingSenderId: "161343618798",
+  appId: "1:161343618798:web:4b2a124f566ab49b1b3dff"
+};
 
-    function addMusic() {
-      const title = document.getElementById('title').value;
-      const artist = document.getElementById('artist').value;
-      const link = document.getElementById('link').value;
-      fetch('/api/add-music', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, artist, link })
-      }).then(res => res.json()).then(data => {
-        if (data.success) {
-          alert('Music added');
-        }
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+onAuthStateChanged(auth, user => {
+  if (!user) window.location.href = "login.html";
+});
+
+document.getElementById("logoutBtn").onclick = () => signOut(auth);
+
+const formArea = document.getElementById("formArea");
+const listArea = document.getElementById("listArea");
+
+let currentTab = "artworks";
+
+document.querySelectorAll(".tabBtn").forEach(btn => {
+  btn.onclick = () => {
+    currentTab = btn.dataset.tab;
+    renderTab();
+  };
+});
+
+function renderTab() {
+  renderForm();
+  loadList();
+}
+
+function renderForm() {
+  if (currentTab === "artworks" || currentTab === "photos") {
+    formArea.innerHTML = `
+      <h3>Add ${currentTab === "artworks" ? "Artwork" : "Photo"}</h3>
+      <input id="title" placeholder="Title"><br><br>
+      <input id="imageUrl" placeholder="Image URL"><br><br>
+      <input id="order" type="number" placeholder="Order"><br><br>
+      <button id="addBtn">Add</button>
+    `;
+
+    document.getElementById("addBtn").onclick = async () => {
+      const title = document.getElementById("title").value.trim();
+      const imageUrl = document.getElementById("imageUrl").value.trim();
+      const order = Number(document.getElementById("order").value || 9999);
+
+      if (!imageUrl) return alert("Image URL required");
+
+      await addDoc(collection(db, currentTab), { title, imageUrl, order });
+      renderTab();
+    };
+  }
+
+  if (currentTab === "music") {
+    formArea.innerHTML = `
+      <h3>Add Music</h3>
+      <input id="title" placeholder="Title"><br><br>
+      <input id="url" placeholder="YouTube URL"><br><br>
+      <input id="order" type="number" placeholder="Order"><br><br>
+      <button id="addBtn">Add</button>
+    `;
+
+    document.getElementById("addBtn").onclick = async () => {
+      const title = document.getElementById("title").value.trim();
+      const url = document.getElementById("url").value.trim();
+      const order = Number(document.getElementById("order").value || 9999);
+
+      if (!title || !url) return alert("Fill all fields");
+
+      await addDoc(collection(db, "music"), { title, url, order });
+      renderTab();
+    };
+  }
+
+  if (currentTab === "links") {
+    formArea.innerHTML = `
+      <h3>Add Link</h3>
+      <input id="icon" placeholder="Icon (emoji)"><br><br>
+      <input id="title" placeholder="Title"><br><br>
+      <input id="url" placeholder="URL"><br><br>
+      <input id="order" type="number" placeholder="Order"><br><br>
+      <button id="addBtn">Add</button>
+    `;
+
+    document.getElementById("addBtn").onclick = async () => {
+      const icon = document.getElementById("icon").value.trim() || "🔗";
+      const title = document.getElementById("title").value.trim();
+      const url = document.getElementById("url").value.trim();
+      const order = Number(document.getElementById("order").value || 9999);
+
+      if (!title || !url) return alert("Fill all fields");
+
+      await addDoc(collection(db, "links"), { icon, title, url, order });
+      renderTab();
+    };
+  }
+}
+
+async function loadList() {
+  listArea.innerHTML = "Loading...";
+
+  const q = query(collection(db, currentTab), orderBy("order", "asc"));
+  const snap = await getDocs(q);
+
+  let html = `<h3>Existing ${currentTab}</h3><div style="display:flex;flex-direction:column;gap:10px;">`;
+
+  snap.forEach(docSnap => {
+    const data = docSnap.data();
+    const id = docSnap.id;
+
+    html += `
+      <div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:14px;">
+        <input data-id="${id}" data-field="title" value="${data.title || ""}">
+        ${data.imageUrl ? `<input data-id="${id}" data-field="imageUrl" value="${data.imageUrl}">` : ""}
+        ${data.url ? `<input data-id="${id}" data-field="url" value="${data.url}">` : ""}
+        ${data.icon ? `<input data-id="${id}" data-field="icon" value="${data.icon}">` : ""}
+        <input data-id="${id}" data-field="order" type="number" value="${data.order || 9999}">
+        <button data-action="save" data-id="${id}">Save</button>
+        <button data-action="delete" data-id="${id}">Delete</button>
+      </div>
+    `;
+  });
+
+  html += "</div>";
+  listArea.innerHTML = html;
+
+  document.querySelectorAll("[data-action='delete']").forEach(btn => {
+    btn.onclick = async () => {
+      if (!confirm("Delete?")) return;
+      await deleteDoc(doc(db, currentTab, btn.dataset.id));
+      renderTab();
+    };
+  });
+
+  document.querySelectorAll("[data-action='save']").forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.dataset.id;
+      const inputs = document.querySelectorAll(`[data-id='${id}']`);
+      const updateData = {};
+
+      inputs.forEach(i => {
+        const field = i.dataset.field;
+        updateData[field] = i.type === "number" ? Number(i.value) : i.value;
       });
-    }
-  </script>
+
+      await updateDoc(doc(db, currentTab, id), updateData);
+      alert("Updated");
+      renderTab();
+    };
+  });
+}
+
+renderTab();
+</script>
+
 </body>
 </html>

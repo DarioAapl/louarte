@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" type="image/png" href="lucianino-memoji.png" />
+</head>
+<body>
+
+  <div class="container">
+    <div class="text-content">
+      <div class="fade-in">Admin Login</div>
+      <div class="under-construction">Nur für Admins</div>
+
+      <br><br>
+
+      <input type="email" id="email" placeholder="Email" style="padding:12px;border-radius:12px;border:none;width:280px;"><br><br>
+      <input type="password" id="password" placeholder="Password" style="padding:12px;border-radius:12px;border:none;width:280px;"><br><br>
+      <button id="loginBtn" style="padding:12px 18px;border-radius:12px;border:none;cursor:pointer;">Login</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
+      authDomain: "louarte-e66bd.firebaseapp.com",
+      projectId: "louarte-e66bd",
+      storageBucket: "louarte-e66bd.firebasestorage.app",
+      messagingSenderId: "161343618798",
+      appId: "1:161343618798:web:4b2a124f566ab49b1b3dff"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    document.getElementById("loginBtn").onclick = async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "admin.html";
+      } catch (e) {
+        alert(e.message);
+      }
+    };
+  </script>
+</body>
+</html>

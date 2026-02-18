@@ -11,26 +11,20 @@
   <nav class="top-nav">
     <div class="nav-content">
 
-      <!-- Mobile row -->
       <div class="top-row">
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Left" class="nav-logo" />
         </a>
 
         <div class="burger" onclick="toggleMenu()">
-          <div></div>
-          <div></div>
-          <div></div>
+          <div></div><div></div><div></div>
         </div>
-
-
 
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
         </a>
       </div>
 
-      <!-- Mobile nav links -->
       <ul class="mobile-nav-links">
         <li><a href="arte.html">LouArte</a></li>
         <li><a href="gallerie.html">LouPhotos</a></li>
@@ -38,7 +32,6 @@
         <li><a href="about.html">LouLinks</a></li>
       </ul>
 
-      <!-- Desktop row -->
       <div class="desktop-row">
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Left" class="nav-logo" />
@@ -51,124 +44,22 @@
           <li><a href="about.html">LouLinks</a></li>
         </ul>
 
-
-          <a href="index.html" class="logo-link">
-            <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
-          </a>
-        </div>
+        <a href="index.html" class="logo-link">
+          <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
+        </a>
       </div>
 
     </div>
   </nav>
 
   <div class="container music-container">
-
-
-
-
-
-    <div class="music-grid">
-      <!-- Music Card 1 -->
-      <a class="music-card" href="https://youtu.be/P1o2dcYG254?si=RMupf5qwBylJwc2y" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 00 Genesis</h3>
-      </a>
-
-
-
-
-
-      <!-- Music Card 2 -->
-      <a class="music-card" href="https://youtu.be/quK9pPrdxnw?si=rS-eBpIPrV44hJPw" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 01 Echoes</h3>
-      </a>
-
-
-
-
-                  <!-- Music Card 3 -->
-      <a class="music-card" href="https://youtu.be/R51ittiOHzw?si=sZIFz2jFZBQ-Hax0" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 02 Angels Voices</h3>
-      </a>
-
-
-
-
-            <!-- Music Card 4 -->
-      <a class="music-card" href="https://youtu.be/SfpqqbENfDE?si=YYSEQcXYl3TY6gkG" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 03 Arpis</h3>
-      </a>
-
-
-
-
-            <!-- Music Card 5 -->
-      <a class="music-card" href="https://youtu.be/Uf9LX1CnA4A?si=SQs1U_sgAyezdrIB" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 04 Love</h3>
-      </a>
-
-
-
-
-                  <!-- Music Card 6 -->
-      <a class="music-card" href="https://youtu.be/XcKhv3f1nQI?si=mlRH3KHtrSW8agF-" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 05 for Nathalie</h3>
-      </a>
-
-
-
-                        <!-- Music Card 7 -->
-      <a class="music-card" href="https://youtu.be/jaD0MI2GKdM?si=fh88pYwhTBFcYdi8" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 06 Abyss</h3>
-      </a>
-
-
-                        <!-- Music Card 8 -->
-      <a class="music-card" href="https://youtu.be/plB4txW1VBU?si=6piJC5e3Eed0labw" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 07 Rising</h3>
-      </a>
-
-
-                              <!-- Music Card 9 -->
-      <a class="music-card" href="https://youtu.be/HR4CSeFGpM8?si=lOtNf6noQmH4oRCr" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 08 Rising Suite</h3>
-      </a>
-
-
-
-                              <!-- Music Card 10 -->
-      <a class="music-card" href="https://youtu.be/UZobCtdBgkU?si=9WHH1ZtaS1F5EHE8" target="_blank">
-        <div class="music-thumb">🎵</div>
-        <h3>Alpha 09 Final</h3>
-      </a>
-
-
-
-    </div>
+    <div class="music-grid" id="musicGrid"></div>
   </div>
 
   <script>
     function toggleMenu() {
       const mobileNav = document.querySelector('.mobile-nav-links');
-      if (mobileNav) {
-        mobileNav.classList.toggle('open');
-      }
-    }
-
-    function changeLanguage(lang) {
-      if (lang === 'en') {
-        window.location.href = 'en_index.html';
-      } else {
-        alert("Only English is available right now.");
-      }
+      if (mobileNav) mobileNav.classList.toggle('open');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -178,6 +69,43 @@
         });
       });
     });
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
+      authDomain: "louarte-e66bd.firebaseapp.com",
+      projectId: "louarte-e66bd",
+      storageBucket: "louarte-e66bd.firebasestorage.app",
+      messagingSenderId: "161343618798",
+      appId: "1:161343618798:web:4b2a124f566ab49b1b3dff"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadMusic() {
+      const grid = document.getElementById("musicGrid");
+      grid.innerHTML = "";
+
+      const q = query(collection(db, "music"), orderBy("order", "asc"));
+      const snap = await getDocs(q);
+
+      snap.forEach(d => {
+        const data = d.data();
+        grid.insertAdjacentHTML("beforeend", `
+          <a class="music-card" href="${data.url}" target="_blank" rel="noopener">
+            <div class="music-thumb">🎵</div>
+            <h3>${data.title}</h3>
+          </a>
+        `);
+      });
+    }
+
+    loadMusic();
   </script>
 </body>
 </html>

@@ -11,16 +11,13 @@
   <nav class="top-nav">
     <div class="nav-content">
 
-      <!-- Mobile row -->
       <div class="top-row">
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Left" class="nav-logo" />
         </a>
 
         <div class="burger" onclick="toggleMenu()">
-          <div></div>
-          <div></div>
-          <div></div>
+          <div></div><div></div><div></div>
         </div>
 
         <a href="index.html" class="logo-link">
@@ -28,7 +25,6 @@
         </a>
       </div>
 
-      <!-- Mobile nav links -->
       <ul class="mobile-nav-links">
         <li><a href="arte.html">LouArte</a></li>
         <li><a href="gallerie.html" class="active">LouPhotos</a></li>
@@ -36,7 +32,6 @@
         <li><a href="about.html">LouLinks</a></li>
       </ul>
 
-      <!-- Desktop row -->
       <div class="desktop-row">
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Left" class="nav-logo" />
@@ -49,47 +44,22 @@
           <li><a href="about.html">LouLinks</a></li>
         </ul>
 
-
-          <a href="index.html" class="logo-link">
-            <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
-          </a>
-        </div>
+        <a href="index.html" class="logo-link">
+          <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
+        </a>
       </div>
 
     </div>
   </nav>
 
   <div class="container">
-    <div class="gallery">
-      <div class="gallery-item"><img src="gal1.jpg" alt="Artwork 1" /></div>
-      <div class="gallery-item"><img src="gal2.jpg" alt="Artwork 2" /></div>
-      <div class="gallery-item"><img src="gal3.jpg" alt="Artwork 3" /></div>
-      <div class="gallery-item"><img src="gal4.jpg" alt="Artwork 4" /></div>
-      <div class="gallery-item"><img src="gal5.jpg" alt="Artwork 5" /></div>
-      <div class="gallery-item"><img src="gal6.jpg" alt="Artwork 6" /></div>
-      <div class="gallery-item"><img src="gal7.jpg" alt="Artwork 7" /></div>
-      <div class="gallery-item"><img src="gal8.jpg" alt="Artwork 8" /></div>
-      <div class="gallery-item"><img src="gal9.jpg" alt="Artwork 9" /></div>
-      <div class="gallery-item"><img src="gal10.jpg" alt="Artwork 10" /></div>
-      <div class="gallery-item"><img src="gal11.jpg" alt="Artwork 11" /></div>
-      <div class="gallery-item"><img src="gal12.jpg" alt="Artwork 12" /></div>
-    </div>
+    <div class="gallery" id="photoGrid"></div>
   </div>
 
   <script>
     function toggleMenu() {
       const mobileNav = document.querySelector('.mobile-nav-links');
-      if (mobileNav) {
-        mobileNav.classList.toggle('open');
-      }
-    }
-
-    function changeLanguage(lang) {
-      if (lang === 'en') {
-        window.location.href = 'en_index.html';
-      } else {
-        alert("Only English is available right now.");
-      }
+      if (mobileNav) mobileNav.classList.toggle('open');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -99,6 +69,43 @@
         });
       });
     });
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
+      authDomain: "louarte-e66bd.firebaseapp.com",
+      projectId: "louarte-e66bd",
+      storageBucket: "louarte-e66bd.firebasestorage.app",
+      messagingSenderId: "161343618798",
+      appId: "1:161343618798:web:4b2a124f566ab49b1b3dff"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadPhotos() {
+      const grid = document.getElementById("photoGrid");
+      grid.innerHTML = "";
+
+      const q = query(collection(db, "photos"), orderBy("order", "asc"));
+      const snap = await getDocs(q);
+
+      snap.forEach(d => {
+        const data = d.data();
+        const safeTitle = data.title ?? "";
+        grid.insertAdjacentHTML("beforeend", `
+          <div class="gallery-item">
+            <img src="${data.imageUrl}" alt="${safeTitle}" />
+          </div>
+        `);
+      });
+    }
+
+    loadPhotos();
   </script>
 </body>
 </html>

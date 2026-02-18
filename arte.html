@@ -18,9 +18,7 @@
         </a>
 
         <div class="burger" onclick="toggleMenu()">
-          <div></div>
-          <div></div>
-          <div></div>
+          <div></div><div></div><div></div>
         </div>
 
         <a href="index.html" class="logo-link">
@@ -49,50 +47,24 @@
           <li><a href="about.html">LouLinks</a></li>
         </ul>
 
-
-          <a href="index.html" class="logo-link">
-            <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
-          </a>
-        </div>
+        <a href="index.html" class="logo-link">
+          <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
+        </a>
       </div>
 
     </div>
   </nav>
 
   <div class="container">
-    <div class="gallery">
-      <div class="gallery-item"><img src="art1.jpg" alt="Artwork 1" /></div>
-      <div class="gallery-item"><img src="art2.jpg" alt="Artwork 2" /></div>
-      <div class="gallery-item"><img src="art3.jpg" alt="Artwork 3" /></div>
-      <div class="gallery-item"><img src="art4.jpg" alt="Artwork 4" /></div>
-      <div class="gallery-item"><img src="art5.jpg" alt="Artwork 5" /></div>
-      <div class="gallery-item"><img src="art6.jpg" alt="Artwork 6" /></div>
-      <div class="gallery-item"><img src="art7.jpg" alt="Artwork 7" /></div>
-      <div class="gallery-item"><img src="art8.jpg" alt="Artwork 8" /></div>
-      <div class="gallery-item"><img src="art9.jpg" alt="Artwork 9" /></div>
-      <div class="gallery-item"><img src="art10.jpg" alt="Artwork 10" /></div>
-      <div class="gallery-item"><img src="art11.jpg" alt="Artwork 11" /></div>
-      <div class="gallery-item"><img src="art12.jpg" alt="Artwork 12" /></div>
-    </div>
+    <div class="gallery" id="artGrid"></div>
   </div>
 
   <script>
     function toggleMenu() {
       const mobileNav = document.querySelector('.mobile-nav-links');
-      if (mobileNav) {
-        mobileNav.classList.toggle('open');
-      }
+      if (mobileNav) mobileNav.classList.toggle('open');
     }
 
-    function changeLanguage(lang) {
-      if (lang === 'en') {
-        window.location.href = 'en_index.html';
-      } else {
-        alert("Only English is available right now.");
-      }
-    }
-
-    // Close menu on link click (optional)
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('.mobile-nav-links a').forEach(link => {
         link.addEventListener('click', () => {
@@ -100,6 +72,44 @@
         });
       });
     });
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
+      authDomain: "louarte-e66bd.firebaseapp.com",
+      projectId: "louarte-e66bd",
+      storageBucket: "louarte-e66bd.firebasestorage.app",
+      messagingSenderId: "161343618798",
+      appId: "1:161343618798:web:4b2a124f566ab49b1b3dff"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadArtworks() {
+      const grid = document.getElementById("artGrid");
+      grid.innerHTML = "";
+
+      const q = query(collection(db, "artworks"), orderBy("order", "asc"));
+      const snap = await getDocs(q);
+
+      snap.forEach(d => {
+        const data = d.data();
+        const safeTitle = data.title ?? "";
+
+        grid.insertAdjacentHTML("beforeend", `
+          <div class="gallery-item">
+            <img src="${data.imageUrl}" alt="${safeTitle}" />
+          </div>
+        `);
+      });
+    }
+
+    loadArtworks();
   </script>
 </body>
 </html>

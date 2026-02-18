@@ -11,25 +11,20 @@
   <nav class="top-nav">
     <div class="nav-content">
 
-      <!-- Mobile row -->
       <div class="top-row">
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Left" class="nav-logo" />
         </a>
 
         <div class="burger" onclick="toggleMenu()">
-          <div></div>
-          <div></div>
-          <div></div>
+          <div></div><div></div><div></div>
         </div>
-
 
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
         </a>
       </div>
 
-      <!-- Mobile nav links -->
       <ul class="mobile-nav-links">
         <li><a href="arte.html">LouArte</a></li>
         <li><a href="gallerie.html">LouPhotos</a></li>
@@ -37,7 +32,6 @@
         <li><a href="about.html" class="active">LouLinks</a></li>
       </ul>
 
-      <!-- Desktop row -->
       <div class="desktop-row">
         <a href="index.html" class="logo-link">
           <img src="minimal_logo.png" alt="Logo Left" class="nav-logo" />
@@ -50,42 +44,22 @@
           <li><a href="about.html" class="active">LouLinks</a></li>
         </ul>
 
-          <a href="index.html" class="logo-link">
-            <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
-          </a>
-        </div>
+        <a href="index.html" class="logo-link">
+          <img src="minimal_logo.png" alt="Logo Right" class="nav-logo" />
+        </a>
       </div>
 
     </div>
   </nav>
 
   <div class="container">
-    <div class="card-grid">
-      <a href="https://apple.com" class="card" target="_blank"><h2></h2></a>
-      <a href="mailto:mail@luarte.ch" class="card" target="_blank"><h2>@</h2></a>
-      <a href="https://bamix.ch" class="card" target="_blank"><h2>⏲️ Bamix</h2></a>
-      <a href="https://dariotino.com" class="card" target="_blank"><h2>☁️ Dario Tino</h2></a>
-      <a href="https://www.zwilling.com/de/demeyere/" class="card" target="_blank"><h2>🍳 Demeyere</h2></a>
-      <a href="https://kinocheck.de" class="card" target="_blank"><h2>🎞️ Kinocheck</h2></a>
-      <a href="https://www.youtube.com/c/FOOBYCH" class="card" target="_blank"><h2>🥗 FOOBY</h2></a>
-      <a href="https://www.instagram.com/luarte.ch?igsh=MXQzMGJqaGk2MTdrMw==" class="card" target="_blank"><h2>📸 Instagram</h2></a>
-    </div>
+    <div class="card-grid" id="linksGrid"></div>
   </div>
 
   <script>
     function toggleMenu() {
       const mobileNav = document.querySelector('.mobile-nav-links');
-      if (mobileNav) {
-        mobileNav.classList.toggle('open');
-      }
-    }
-
-    function changeLanguage(lang) {
-      if (lang === 'en') {
-        window.location.href = 'en_index.html';
-      } else {
-        alert("Only English is available right now.");
-      }
+      if (mobileNav) mobileNav.classList.toggle('open');
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -95,6 +69,44 @@
         });
       });
     });
+  </script>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
+      authDomain: "louarte-e66bd.firebaseapp.com",
+      projectId: "louarte-e66bd",
+      storageBucket: "louarte-e66bd.firebasestorage.app",
+      messagingSenderId: "161343618798",
+      appId: "1:161343618798:web:4b2a124f566ab49b1b3dff"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    async function loadLinks() {
+      const grid = document.getElementById("linksGrid");
+      grid.innerHTML = "";
+
+      const q = query(collection(db, "links"), orderBy("order", "asc"));
+      const snap = await getDocs(q);
+
+      snap.forEach(d => {
+        const data = d.data();
+        const icon = data.icon ?? "🔗";
+        const title = data.title ?? "";
+        grid.insertAdjacentHTML("beforeend", `
+          <a href="${data.url}" class="card" target="_blank" rel="noopener">
+            <h2>${icon} ${title}</h2>
+          </a>
+        `);
+      });
+    }
+
+    loadLinks();
   </script>
 </body>
 </html>

@@ -74,21 +74,36 @@
     </div>
   </div>
 
-<script>
-  function toggleMenu() {
-    const mobileNav = document.querySelector('.mobile-nav-links');
-    if (mobileNav) {
-      mobileNav.classList.toggle('open');
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
+    authDomain: "louarte-e66bd.firebaseapp.com",
+    projectId: "louarte-e66bd",
+    storageBucket: "louarte-e66bd.firebasestorage.app",
+    messagingSenderId: "161343618798",
+    appId: "1:161343618798:web:4b2a124f566ab49b1b3dff"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  async function loadHomepageText() {
+    const docRef = doc(db, "content", "homepage");
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      document.getElementById("dynamicText").innerText =
+        docSnap.data().text;
+    } else {
+      document.getElementById("dynamicText").innerText =
+        "Welcome to my website";
     }
   }
 
-  function changeLanguage(lang) {
-    if (lang === 'en') {
-      window.location.href = 'en/en_index.html';
-    } else {
-      alert("Only English is available right now.");
-    }
-  }
+  loadHomepageText();
 </script>
 
 </body>
