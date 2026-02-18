@@ -49,6 +49,13 @@ import {
   deleteDoc,
   updateDoc
 } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCM7bW_Ui-UxAAn3PjMONWM5aiP_DtXl3w",
@@ -62,6 +69,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 onAuthStateChanged(auth, user => {
   if (!user) window.location.href = "login.html";
@@ -87,27 +95,57 @@ function renderTab() {
 }
 
 function renderForm() {
+
+  // IMAGE TABS
   if (currentTab === "artworks" || currentTab === "photos") {
+
     formArea.innerHTML = `
       <h3>Add ${currentTab === "artworks" ? "Artwork" : "Photo"}</h3>
       <input id="title" placeholder="Title"><br><br>
-      <input id="imageUrl" placeholder="Image URL"><br><br>
+      <input id="imageFile" type="file" accept="image/*"><br><br>
       <input id="order" type="number" placeholder="Order"><br><br>
-      <button id="addBtn">Add</button>
+      <button id="addBtn">Upload & Add</button>
     `;
 
     document.getElementById("addBtn").onclick = async () => {
+
       const title = document.getElementById("title").value.trim();
-      const imageUrl = document.getElementById("imageUrl").value.trim();
+      const fileInput = document.getElementById("imageFile");
       const order = Number(document.getElementById("order").value || 9999);
 
-      if (!imageUrl) return alert("Image URL required");
+      if (!fileInput.files.length) {
+        alert("Select an image");
+        return;
+      }
 
-      await addDoc(collection(db, currentTab), { title, imageUrl, order });
-      renderTab();
+      const file = fileInput.files[0];
+      const filePath = `${currentTab}/${Date.now()}_${file.name}`;
+      const storageRef = ref(storage, filePath);
+
+      try {
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
+
+        await addDoc(collection(db, currentTab), {
+          title,
+          imageUrl: downloadURL,
+          storagePath: filePath,
+          order
+        });
+
+        alert("Uploaded!");
+        renderTab();
+
+      } catch (err) {
+        console.error(err);
+        alert("Upload failed");
+      }
     };
+
+    return;
   }
 
+  // MUSIC
   if (currentTab === "music") {
     formArea.innerHTML = `
       <h3>Add Music</h3>
@@ -127,8 +165,11 @@ function renderForm() {
       await addDoc(collection(db, "music"), { title, url, order });
       renderTab();
     };
+
+    return;
   }
 
+  // LINKS
   if (currentTab === "links") {
     formArea.innerHTML = `
       <h3>Add Link</h3>
@@ -150,6 +191,8 @@ function renderForm() {
       await addDoc(collection(db, "links"), { icon, title, url, order });
       renderTab();
     };
+
+    return;
   }
 }
 
@@ -167,8 +210,8 @@ async function loadList() {
 
     html += `
       <div style="background:rgba(255,255,255,0.05);padding:14px;border-radius:14px;">
-        <input data-id="${id}" data-field="title" value="${data.title || ""}">
-        ${data.imageUrl ? `<input data-id="${id}" data-field="imageUrl" value="${data.imageUrl}">` : ""}
+        ${data.title ? `<input data-id="${id}" data-field="title" value="${data.title}">` : ""}
+        ${data.imageUrl ? `<img src="${data.imageUrl}" style="max-width:120px;display:block;margin:8px 0;">` : ""}
         ${data.url ? `<input data-id="${id}" data-field="url" value="${data.url}">` : ""}
         ${data.icon ? `<input data-id="${id}" data-field="icon" value="${data.icon}">` : ""}
         <input data-id="${id}" data-field="order" type="number" value="${data.order || 9999}">
@@ -184,7 +227,16 @@ async function loadList() {
   document.querySelectorAll("[data-action='delete']").forEach(btn => {
     btn.onclick = async () => {
       if (!confirm("Delete?")) return;
-      await deleteDoc(doc(db, currentTab, btn.dataset.id));
+
+      const id = btn.dataset.id;
+      const docRef = doc(db, currentTab, id);
+      const docSnap = snap.docs.find(d => d.id === id);
+
+      if (docSnap?.data().storagePath) {
+        await deleteObject(ref(storage, docSnap.data().storagePath));
+      }
+
+      await deleteDoc(docRef);
       renderTab();
     };
   });
